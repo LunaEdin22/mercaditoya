@@ -1,0 +1,702 @@
+/* Estilos personalizados para MercaditoYa - Paleta Clara */
+
+:root {
+    /* Colores principales - Paleta clara y moderna */
+    --primary-color: #3b82f6;      /* Azul suave */
+    --primary-light: #60a5fa;      /* Azul más claro */
+    --primary-dark: #1d4ed8;       /* Azul más oscuro */
+    
+    --secondary-color: #64748b;    /* Gris azulado */
+    --success-color: #10b981;      /* Verde esmeralda */
+    --warning-color: #f59e0b;      /* Ámbar */
+    --danger-color: #ef4444;       /* Rojo coral */
+    --info-color: #06b6d4;         /* Cian */
+    
+    /* Colores de fondo */
+    --bg-primary: #ffffff;         /* Blanco puro */
+    --bg-secondary: #f8fafc;       /* Gris muy claro */
+    --bg-light: #f1f5f9;           /* Gris claro */
+    --bg-muted: #e2e8f0;           /* Gris medio */
+    
+    /* Colores de texto */
+    --text-primary: #1e293b;       /* Gris oscuro */
+    --text-secondary: #475569;     /* Gris medio */
+    --text-muted: #64748b;         /* Gris claro */
+    --text-light: #94a3b8;         /* Gris muy claro */
+    
+    /* Bordes y sombras */
+    --border-color: #e2e8f0;
+    --border-light: #f1f5f9;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos generales */
+html {
+    height: 100%;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* Navbar - Estilo minimalista */
+.navbar {
+    background-color: var(--bg-primary) !important;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--primary-color) !important;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    color: var(--text-secondary) !important;
+    transition: color 0.3s ease;
+    padding: 0.75rem 1rem !important;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--primary-color) !important;
+}
+
+.navbar-nav .nav-link.active {
+    color: var(--primary-color) !important;
+    font-weight: 600;
+}
+
+/* Botones - Estilo moderno */
+.btn {
+    border-radius: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    padding: 0.625rem 1.25rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    background: transparent;
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color), #34d399);
+    color: white;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--warning-color), #fbbf24);
+    color: white;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger-color), #f87171);
+    color: white;
+}
+
+/* Cards - Diseño limpio */
+.card {
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    background-color: var(--bg-primary);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--bg-light), var(--bg-secondary));
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 1rem 1rem 0 0 !important;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Product Cards */
+.product-card {
+    transition: all 0.3s ease;
+    height: 100%;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+.product-card .card-img-top {
+    transition: transform 0.3s ease;
+    height: 200px;
+    object-fit: cover;
+}
+
+.product-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+.product-card .card-body {
+    padding: 1.25rem;
+}
+
+.product-card .card-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.product-card .text-muted {
+    color: var(--text-muted) !important;
+}
+
+.product-card .text-primary {
+    color: var(--primary-color) !important;
+    font-weight: 700;
+}
+
+/* Category Cards */
+.category-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.category-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, var(--bg-primary), var(--bg-light));
+}
+
+.category-card i {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.category-card h5 {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Hero Section - Gradiente suave */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    position: relative;
+    padding: 4rem 0;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.hero-section .container {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-section h1 {
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.hero-section .lead {
+    font-size: 1.125rem;
+    margin-bottom: 2rem;
+}
+
+.hero-section .btn {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+/* Forms - Estilo limpio */
+.form-control {
+    border-radius: 0.75rem;
+    border: 2px solid var(--border-color);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background-color: var(--bg-primary);
+}
+
+.form-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.input-group-text {
+    background-color: var(--bg-light);
+    border: 2px solid var(--border-color);
+    color: var(--text-secondary);
+    border-radius: 0.75rem 0 0 0.75rem;
+}
+
+/* Tables - Diseño moderno */
+.table {
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    background-color: var(--bg-primary);
+}
+
+.table thead th {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
+    border: none;
+    font-weight: 600;
+    padding: 1rem;
+}
+
+.table tbody tr {
+    transition: background-color 0.3s ease;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.table tbody tr:hover {
+    background-color: var(--bg-light);
+}
+
+.table td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+/* Badges - Estilo suave */
+.badge {
+    border-radius: 0.5rem;
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+}
+
+.badge.bg-success {
+    background: linear-gradient(135deg, var(--success-color), #34d399) !important;
+}
+
+.badge.bg-warning {
+    background: linear-gradient(135deg, var(--warning-color), #fbbf24) !important;
+}
+
+.badge.bg-danger {
+    background: linear-gradient(135deg, var(--danger-color), #f87171) !important;
+}
+
+.badge.bg-info {
+    background: linear-gradient(135deg, var(--info-color), #22d3ee) !important;
+}
+
+/* Main content area - para empujar el footer hacia abajo */
+main {
+    flex: 1 0 auto;
+    min-height: 0;
+}
+
+/* Footer - Sticky footer (no fijo en pantalla) */
+footer {
+    background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+    color: white;
+    padding: 3rem 0 1rem;
+    margin-top: auto;
+    flex-shrink: 0;
+    position: relative;
+}
+
+footer h5, footer h6 {
+    color: white;
+    font-weight: 600;
+}
+
+footer p, footer small {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+footer a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+footer a:hover {
+    color: white;
+}
+
+/* Alerts - Estilo moderno */
+.alert {
+    border: none;
+    border-radius: 1rem;
+    border-left: 4px solid;
+    padding: 1rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.alert-success {
+    border-left-color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #047857;
+}
+
+.alert-danger {
+    border-left-color: var(--danger-color);
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+.alert-warning {
+    border-left-color: var(--warning-color);
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+}
+
+.alert-info {
+    border-left-color: var(--info-color);
+    background-color: rgba(6, 182, 212, 0.1);
+    color: #0891b2;
+}
+
+/* Breadcrumb - Estilo minimalista */
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+.breadcrumb-item {
+    color: var(--text-muted);
+}
+
+.breadcrumb-item.active {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+    font-weight: bold;
+    color: var(--text-light);
+}
+
+/* Progress bars */
+.progress {
+    background-color: var(--bg-light);
+    border-radius: 0.5rem;
+    height: 0.75rem;
+}
+
+.progress-bar {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    border-radius: 0.5rem;
+}
+
+/* Loading spinner */
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.spinner-border {
+    color: var(--primary-color);
+}
+
+/* Scroll to top button */
+.scroll-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
+    border: none;
+    border-radius: 50%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.scroll-to-top:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+
+/* Carrito */
+.cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, var(--danger-color), #f87171);
+    color: white;
+    border-radius: 50%;
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+/* Estados de productos */
+.product-status {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 10;
+}
+
+.out-of-stock {
+    opacity: 0.7;
+    position: relative;
+}
+
+.out-of-stock::after {
+    content: 'Sin Stock';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, var(--danger-color), #f87171);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    z-index: 20;
+    box-shadow: var(--shadow-md);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2.5rem 0;
+    }
+    
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+    }
+    
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+    
+    .hero-section h1 {
+        font-size: 1.75rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Animaciones suaves */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-in-right {
+    animation: slideInRight 0.6s ease-out;
+}
+
+/* Utilidades adicionales */
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, var(--success-color), #34d399);
+}
+
+.border-gradient {
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, var(--primary-color), var(--primary-light)) border-box;
+}
+
+/* Sombras personalizadas */
+.shadow-soft {
+    box-shadow: var(--shadow-md);
+}
+
+.shadow-strong {
+    box-shadow: var(--shadow-xl);
+}
+
+/* Estilos específicos para botones de formularios */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3) !important;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #1e3a8a 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 12px rgba(59, 130, 246, 0.4) !important;
+}
+
+.btn-primary:active,
+.btn-primary:focus {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #1e3a8a 100%) !important;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3) !important;
+    transform: translateY(0) !important;
+}
+
+.btn-lg {
+    padding: 12px 24px !important;
+    font-size: 1.1rem !important;
+}
+
+/* Mejorar contraste en formularios */
+.form-control {
+    background-color: var(--bg-primary) !important;
+    border: 2px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+    transition: all 0.3s ease !important;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+    background-color: var(--bg-primary) !important;
+}
+
+.form-label {
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+    margin-bottom: 8px !important;
+}
+
+.input-group-text {
+    background-color: var(--bg-light) !important;
+    border: 2px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+}
+
+/* Estilos para botón success */
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3) !important;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 12px rgba(16, 185, 129, 0.4) !important;
+}
+
+.btn-success:active,
+.btn-success:focus {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3) !important;
+    transform: translateY(0) !important;
+}

@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Pedidos - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-shopping-cart me-2"></i>Gestión de Pedidos
+        </h2>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select name="estado" class="form-select">
+                        <option value="">Todos los estados</option>
+                        <option value="pendiente" {% if estado_filtro == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                        <option value="confirmado" {% if estado_filtro == 'confirmado' %}selected{% endif %}>Confirmado</option>
+                        <option value="en_preparacion" {% if estado_filtro == 'en_preparacion' %}selected{% endif %}>En Preparación</option>
+                        <option value="en_camino" {% if estado_filtro == 'en_camino' %}selected{% endif %}>En Camino</option>
+                        <option value="entregado" {% if estado_filtro == 'entregado' %}selected{% endif %}>Entregado</option>
+                        <option value="cancelado" {% if estado_filtro == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Fecha desde</label>
+                    <input type="date" name="fecha_desde" class="form-control" value="{{ fecha_desde_filtro or '' }}" placeholder="dd/mm/aaaa">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Fecha hasta</label>
+                    <input type="date" name="fecha_hasta" class="form-control" value="{{ fecha_hasta_filtro or '' }}" placeholder="dd/mm/aaaa">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Buscar cliente</label>
+                    <input type="text" name="q" class="form-control" value="{{ busqueda_filtro or '' }}" placeholder="Nombre del cliente">
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning me-3">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">{{ stats.pendientes or 0 }}</h3>
+                            <small class="text-muted">Pendientes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">{{ stats.en_preparacion or 0 }}</h3>
+                            <small class="text-muted">En Preparación</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="stat-icon bg-info bg-opacity-10 text-info me-3">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">{{ stats.en_camino or 0 }}</h3>
+                            <small class="text-muted">En Camino</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success me-3">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">{{ stats.entregados or 0 }}</h3>
+                            <small class="text-muted">Entregados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de pedidos -->
+    {% if pedidos %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID Pedido</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Tipo Entrega</th>
+                            <th>Repartidor</th>
+                            <th width="150">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos %}
+                        <tr>
+                            <td>
+                                <strong>#{{ pedido.id_pedido }}</strong>
+                            </td>
+                            <td>
+                                <div>
+                                    <h6 class="mb-0">{{ pedido.usuario.nombre_completo }}</h6>
+                                    <small class="text-muted">{{ pedido.usuario.email }}</small>
+                                </div>
+                            </td>
+                            <td>{{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td>
+                                <strong>S/. {{ "%.2f"|format(pedido.total) }}</strong>
+                            </td>
+                            <td>
+                                {% set estado_class = {
+                                    'pendiente': 'warning',
+                                    'confirmado': 'info',
+                                    'en_preparacion': 'primary',
+                                    'en_camino': 'success',
+                                    'entregado': 'success',
+                                    'cancelado': 'danger'
+                                } %}
+                                {% set estado_text = {
+                                    'pendiente': 'Pendiente',
+                                    'confirmado': 'Confirmado',
+                                    'en_preparacion': 'En Preparación',
+                                    'en_camino': 'En Camino',
+                                    'entregado': 'Entregado',
+                                    'cancelado': 'Cancelado'
+                                } %}
+                                <span class="badge bg-{{ estado_class.get(pedido.estado, 'secondary') }}">
+                                    {{ estado_text.get(pedido.estado, pedido.estado) }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if pedido.es_delivery %}
+                                    <span class="badge bg-info text-white">
+                                        <i class="fas fa-truck me-1"></i>Delivery
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-success text-white">
+                                        <i class="fas fa-store me-1"></i>Retiro
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if pedido.repartidor %}
+                                <small>{{ pedido.repartidor.nombre_completo }}</small>
+                                {% else %}
+                                <span class="text-muted">Sin asignar</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('pedidos.admin_ver_pedido', id=pedido.id_pedido) }}" 
+                                       class="btn btn-outline-info" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if pedido.estado not in ['entregado', 'cancelado'] %}
+                                    <button type="button" class="btn btn-outline-primary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalCambiarEstado"
+                                            data-pedido-id="{{ pedido.id_pedido }}"
+                                            data-pedido-estado="{{ pedido.estado }}"
+                                            data-es-delivery="{{ pedido.es_delivery|lower }}"
+                                            {% if pedido.repartidor_id %}data-repartidor-id="{{ pedido.repartidor_id }}"{% endif %}
+                                            title="Cambiar estado">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    {% endif %}
+                                    <a href="{{ url_for('pedidos.admin_imprimir_pedido', id=pedido.id_pedido) }}" 
+                                       class="btn btn-outline-secondary" title="Imprimir" target="_blank">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+        <h4>No hay pedidos</h4>
+        <p class="text-muted">No se encontraron pedidos con los filtros seleccionados.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal para cambiar estado -->
+<div class="modal fade" id="modalCambiarEstado" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Cambiar Estado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="formCambiarEstado">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nuevo Estado</label>
+                        <select name="estado" id="selectEstado" class="form-select" required>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="confirmado">Confirmado</option>
+                            <option value="en_preparacion">En Preparación</option>
+                            <option value="en_camino">En Camino</option>
+                            <option value="entregado">Entregado</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Asignar Repartidor</label>
+                        <select name="repartidor_id" id="selectRepartidor" class="form-select">
+                            <option value="">Sin asignar</option>
+                            {% if repartidores %}
+                            {% for repartidor in repartidores %}
+                            <option value="{{ repartidor.id_usuario }}">
+                                {{ repartidor.nombre_completo }}
+                            </option>
+                            {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('modalCambiarEstado');
+    const modalTitle = document.getElementById('modalTitle');
+    const form = document.getElementById('formCambiarEstado');
+    const selectEstado = document.getElementById('selectEstado');
+    const selectRepartidor = document.getElementById('selectRepartidor');
+    
+    // Escuchar cuando se abre el modal
+    modal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget; // Botón que activó el modal
+        const pedidoId = button.getAttribute('data-pedido-id');
+        const estadoActual = button.getAttribute('data-pedido-estado');
+        const repartidorActual = button.getAttribute('data-repartidor-id');
+        
+        // Actualizar título
+        modalTitle.textContent = 'Cambiar Estado - Pedido #' + pedidoId;
+        
+        // Construir la URL dinámicamente
+        const baseUrl = '/pedidos/admin/pedido/';
+        form.action = baseUrl + pedidoId + '/estado';
+        
+        // Seleccionar el estado actual
+        selectEstado.value = estadoActual;
+        
+        // Seleccionar repartidor actual si existe
+        if (repartidorActual) {
+            selectRepartidor.value = repartidorActual;
+        } else {
+            selectRepartidor.value = '';
+        }
+    });
+});
+</script>
+
+<style>
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+/* Estilos para el modal */
+#modalCambiarEstado .form-select {
+    color: #212529 !important;
+    background-color: #fff !important;
+}
+
+#modalCambiarEstado .form-label {
+    color: #212529 !important;
+    font-weight: 500;
+}
+</style>
+{% endblock %}

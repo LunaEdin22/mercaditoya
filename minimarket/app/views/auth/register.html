@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Registrarse - MercaditoYa{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-4">
+        <div class="col-lg-6 col-md-8">
+            <div class="card shadow">
+                <div class="card-header text-white text-center" 
+                     style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <h3 class="mb-0">
+                        <i></i>Crear Cuenta
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" id="registerForm">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="nombre_completo" class="form-label">Nombre Completo *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="nombre_completo" 
+                                           name="nombre_completo" required placeholder="Tu nombre completo">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="email" class="form-label">Email *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           required placeholder="tu@email.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">Contraseña *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password" class="form-control" id="password" 
+                                           name="password" required placeholder="Mínimo 6 caracteres">
+                                </div>
+                                <div class="form-text">Mínimo 6 caracteres</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="confirm_password" class="form-label">Confirmar Contraseña *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password" class="form-control" id="confirm_password" 
+                                           name="confirm_password" required placeholder="Repite tu contraseña">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="telefono" class="form-label">Teléfono</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-phone"></i>
+                                    </span>
+                                    <input type="tel" class="form-control" id="telefono" name="telefono" 
+                                           placeholder="Ej: 987654321" 
+                                           pattern="[0-9]{9}" 
+                                           maxlength="9"
+                                           title="Debe contener exactamente 9 números">
+                                </div>
+                                <div class="form-text">Debe contener exactamente 9 números</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="direccion" class="form-label">Dirección</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </span>
+                                <textarea class="form-control" id="direccion" name="direccion" 
+                                          rows="2" placeholder="Tu dirección completa"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="terms" required>
+                            <label class="form-check-label" for="terms">
+                                Acepto los <a href="#" class="text-primary">términos y condiciones</a> *
+                            </label>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg fw-bold shadow-sm" 
+                                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; color: white;">
+                                <i class="fas fa-user-plus me-2"></i>Crear Cuenta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center bg-light">
+                    <p class="mb-0">
+                        ¿Ya tienes cuenta? 
+                        <a href="{{ url_for('auth.login') }}" class="text-primary text-decoration-none">
+                            <strong>Inicia sesión aquí</strong>
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validación en tiempo real para solo números en el teléfono
+document.getElementById('telefono').addEventListener('input', function(e) {
+    // Remover cualquier carácter que no sea número
+    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    
+    // Limitar a 9 dígitos
+    if (e.target.value.length > 9) {
+        e.target.value = e.target.value.slice(0, 9);
+    }
+});
+
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    const telefono = document.getElementById('telefono').value;
+    
+    // Validar contraseñas
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('Las contraseñas no coinciden');
+        return false;
+    }
+    
+    if (password.length < 6) {
+        e.preventDefault();
+        alert('La contraseña debe tener al menos 6 caracteres');
+        return false;
+    }
+    
+    // Validar teléfono si se proporciona
+    if (telefono && telefono.length !== 9) {
+        e.preventDefault();
+        alert('El teléfono debe contener exactamente 9 números');
+        return false;
+    }
+    
+    // Validar que solo contenga números
+    if (telefono && !/^[0-9]{9}$/.test(telefono)) {
+        e.preventDefault();
+        alert('El teléfono solo debe contener números');
+        return false;
+    }
+});
+</script>
+{% endblock %}

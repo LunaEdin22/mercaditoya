@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if usuario else 'Nuevo' }} Usuario - MercaditoYa{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        {{ 'Editar Usuario' if usuario else 'Nuevo Usuario' }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="usuarioForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nombre_completo" class="form-label">Nombre Completo *</label>
+                                    <input type="text" class="form-control" id="nombre_completo" name="nombre_completo" 
+                                           value="{{ usuario.nombre_completo if usuario else '' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           value="{{ usuario.email if usuario else '' }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="telefono" class="form-label">Teléfono</label>
+                                    <input type="tel" class="form-control" id="telefono" name="telefono" 
+                                           placeholder="Ej: 987654321" 
+                                           pattern="[0-9]{9}" 
+                                           maxlength="9"
+                                           title="Debe contener exactamente 9 números"
+                                           value="{{ usuario.telefono if usuario else '' }}">
+                                    <div class="form-text">Debe contener exactamente 9 números</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_rol" class="form-label">Rol *</label>
+                                    <select class="form-select" id="id_rol" name="id_rol" required>
+                                        <option value="">Seleccionar rol</option>
+                                        {% for rol in roles %}
+                                        <option value="{{ rol.id_rol }}" 
+                                                {% if usuario and usuario.id_rol == rol.id_rol %}selected{% endif %}>
+                                            {{ rol.nombre.title() }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="direccion" class="form-label">Dirección</label>
+                            <textarea class="form-control" id="direccion" name="direccion" 
+                                      rows="3" placeholder="Dirección completa">{{ usuario.direccion if usuario else '' }}</textarea>
+                        </div>
+
+                        {% if not usuario %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Contraseña *</label>
+                                    <input type="password" class="form-control" id="password" 
+                                           name="password" required placeholder="Mínimo 6 caracteres">
+                                    <div class="form-text">Mínimo 6 caracteres</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirmar Contraseña *</label>
+                                    <input type="password" class="form-control" id="confirm_password" 
+                                           name="confirm_password" required placeholder="Repite la contraseña">
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('usuarios.admin_listar_usuarios') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver
+                            </a>
+                            <div>
+                                {% if usuario %}
+                                <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <i class="fas fa-trash me-2"></i>Eliminar
+                                </button>
+                                {% endif %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>
+                                    {{ 'Actualizar' if usuario else 'Crear' }} Usuario
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if usuario %}
+            <!-- Información adicional del usuario -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Información Adicional</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Último Acceso:</strong> 
+                                {% if usuario.ultimo_acceso %}
+                                {{ usuario.ultimo_acceso.strftime('%d/%m/%Y %H:%M') }}
+                                {% else %}
+                                Nunca
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            {% if usuario.rol.nombre == 'cliente' %}
+                            <p><strong>Total de Pedidos:</strong> {{ usuario.pedidos|length }}</p>
+                            {% if usuario.pedidos|length > 0 %}
+                            <p><strong>Total Gastado:</strong> S/. {{ "%.2f"|format(usuario.pedidos|sum(attribute='total')) }}</p>
+                            {% else %}
+                            <p><strong>Total Gastado:</strong> S/. 0.00</p>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+{% if usuario %}
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar al usuario <strong>"{{ usuario.nombre_completo }}"</strong>?</p>
+                <p class="text-danger"><small>Esta acción eliminará todos los datos relacionados y no se puede deshacer.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{{ url_for('usuarios.admin_eliminar_usuario', id=usuario.id_usuario) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validación en tiempo real para solo números en el teléfono
+document.getElementById('telefono').addEventListener('input', function(e) {
+    // Remover cualquier carácter que no sea número
+    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    
+    // Limitar a 9 dígitos
+    if (e.target.value.length > 9) {
+        e.target.value = e.target.value.slice(0, 9);
+    }
+});
+
+document.getElementById('usuarioForm').addEventListener('submit', function(e) {
+    const telefono = document.getElementById('telefono').value;
+    
+    // Validar teléfono si se proporciona
+    if (telefono && telefono.length !== 9) {
+        e.preventDefault();
+        alert('El teléfono debe contener exactamente 9 números');
+        return false;
+    }
+    
+    // Validar que solo contenga números
+    if (telefono && !/^[0-9]{9}$/.test(telefono)) {
+        e.preventDefault();
+        alert('El teléfono solo debe contener números');
+        return false;
+    }
+
+    // Validar contraseñas solo para usuarios nuevos
+    const passwordField = document.getElementById('password');
+    if (passwordField) {
+        const password = passwordField.value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Las contraseñas no coinciden');
+            return false;
+        }
+        
+        if (password.length < 6) {
+            e.preventDefault();
+            alert('La contraseña debe tener al menos 6 caracteres');
+            return false;
+        }
+    }
+});
+</script>
+{% endblock %}

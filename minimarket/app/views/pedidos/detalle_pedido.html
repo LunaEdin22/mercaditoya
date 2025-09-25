@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle Pedido #{{ pedido.id_pedido }} - MercaditoYa{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('pedidos.mis_pedidos') }}">Mis Pedidos</a></li>
+            <li class="breadcrumb-item active">Pedido #{{ pedido.id_pedido }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Información del pedido -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Pedido #{{ pedido.id_pedido }}</h4>
+                        <span class="badge bg-{% if pedido.estado == 'entregado' %}success{% elif pedido.estado == 'cancelado' %}danger{% elif pedido.estado == 'pendiente' %}warning{% else %}info{% endif %} fs-6">
+                            {{ pedido.estado.title() }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Información del Pedido</h6>
+                            <p><strong>Fecha:</strong> {{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
+                            <p><strong>Cliente:</strong> {{ pedido.usuario.nombre_completo }}</p>
+                            <p><strong>Email:</strong> {{ pedido.usuario.email }}</p>
+                            {% if pedido.usuario.telefono %}
+                            <p><strong>Teléfono:</strong> {{ pedido.usuario.telefono }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Entrega</h6>
+                            {% if pedido.es_delivery %}
+                            <p><strong>Tipo:</strong> <i class="fas fa-truck me-1"></i>Delivery</p>
+                            {% if pedido.es_delivery and pedido.usuario.direccion %}
+                            <p><strong>Dirección:</strong> {{ pedido.usuario.direccion }}</p>
+                            {% endif %}
+                            {% else %}
+                            <p><strong>Tipo:</strong> <i class="fas fa-store me-1"></i>Retiro en tienda</p>
+                            <p><strong>Dirección:</strong> Calle Principal #123, Centro</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos del pedido -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Productos del Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Precio Unitario</th>
+                                    <th>Cantidad</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for detalle in pedido.detalles %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if detalle.producto.imagen_url %}
+                                            <img src="{{ detalle.producto.imagen_url }}" 
+                                                 class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" 
+                                                 style="width: 50px; height: 50px;">
+                                                <i class="fas fa-image text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0">{{ detalle.producto.nombre }}</h6>
+                                                <small class="text-muted">{{ detalle.producto.categoria.nombre }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>S/. {{ "%.2f"|format(detalle.precio_unitario) }}</td>
+                                    <td>{{ detalle.cantidad }}</td>
+                                    <td class="fw-bold">S/. {{ "%.2f"|format(detalle.subtotal()) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen y acciones -->
+        <div class="col-lg-4">
+            <div class="card sticky-top">
+                <div class="card-header">
+                    <h5 class="mb-0">Resumen del Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>S/. {{ "%.2f"|format(pedido.total) }}</span>
+                    </div>
+                    
+                    {% if pedido.es_delivery %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Delivery:</span>
+                        <span>S/. 5.00</span>
+                    </div>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between fw-bold fs-4">
+                        <span>Total:</span>
+                        <span class="text-primary">S/. {{ "%.2f"|format(pedido.total) }}</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Estado del pedido -->
+                    <div class="mb-3">
+                        <h6>Estado del Pedido</h6>
+                        <div class="progress mb-2" style="height: 20px;">
+                            {% set estados = ['pendiente', 'confirmado', 'en_preparacion', 'en_camino', 'entregado'] %}
+                            {% set estado_actual_index = estados.index(pedido.estado) if pedido.estado in estados else 0 %}
+                            {% set progreso = ((estado_actual_index + 1) / estados|length) * 100 %}
+                            {% if pedido.estado == 'cancelado' %}
+                                {% set ancho_progreso = 0 %}
+                                {% set clase_progreso = 'bg-danger' %}
+                            {% else %}
+                                {% set ancho_progreso = progreso %}
+                                {% set clase_progreso = 'bg-success' %}
+                            {% endif %}
+                            
+                            <div class="progress-bar {{ clase_progreso }}" 
+                                 id="progress-bar-{{ pedido.id_pedido }}"
+                                 data-width="{{ ancho_progreso }}">
+                                {{ ancho_progreso|round|int }}%
+                            </div>
+                            
+                            <script>
+                                document.getElementById('progress-bar-{{ pedido.id_pedido }}').style.width = '{{ ancho_progreso }}%';
+                            </script>
+                        </div>
+                        
+                        <div class="small">
+                            {% if pedido.estado == 'pendiente' %}
+                            <i class="fas fa-clock text-warning"></i> Esperando confirmación
+                            {% elif pedido.estado == 'confirmado' %}
+                            <i class="fas fa-check text-info"></i> Pedido confirmado
+                            {% elif pedido.estado == 'en_preparacion' %}
+                            <i class="fas fa-utensils text-info"></i> En preparación
+                            {% elif pedido.estado == 'en_camino' %}
+                            <i class="fas fa-truck text-primary"></i> En camino
+                            {% elif pedido.estado == 'entregado' %}
+                            <i class="fas fa-check-circle text-success"></i> Entregado
+                            {% elif pedido.estado == 'cancelado' %}
+                            <i class="fas fa-times-circle text-danger"></i> Cancelado
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Acciones -->
+                    <div class="d-grid gap-2">
+                        {% if current_user.is_admin() %}
+                        <a href="{{ url_for('pedidos.admin_listar_pedidos') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-1"></i>Volver a Pedidos
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('pedidos.mis_pedidos') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-1"></i>Mis Pedidos
+                        </a>
+                        {% endif %}
+                        
+                        {% if pedido.estado == 'entregado' %}
+                        <button class="btn btn-success" disabled>
+                            <i class="fas fa-check me-1"></i>Pedido Completado
+                        </button>
+                        {% elif pedido.estado == 'cancelado' %}
+                        <button class="btn btn-danger" disabled>
+                            <i class="fas fa-times me-1"></i>Pedido Cancelado
+                        </button>
+                        {% else %}
+                        <a href="{{ url_for('main.listar_productos') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Hacer Otro Pedido
+                        </a>
+                        
+                        {% if pedido.estado in ['pendiente', 'confirmado'] and pedido.id_usuario == current_user.id_usuario %}
+                        <a href="{{ url_for('pedidos.cancelar_pedido', id=pedido.id_pedido) }}" class="btn btn-outline-danger">
+                            <i class="fas fa-times me-1"></i>Cancelar Pedido
+                        </a>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

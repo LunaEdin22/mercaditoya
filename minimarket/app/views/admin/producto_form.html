@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if producto else 'Nuevo' }} Producto - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-box me-2"></i>
+                        {{ 'Editar Producto' if producto else 'Nuevo Producto' }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" id="productoForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="nombre" class="form-label">Nombre del Producto *</label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" 
+                                           value="{{ producto.nombre if producto else '' }}" required>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="precio" class="form-label">Precio *</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">S/.</span>
+                                                <input type="number" class="form-control" id="precio" name="precio" 
+                                                       step="0.01" min="0" 
+                                                       value="{{ producto.precio if producto else '' }}" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="stock" class="form-label">Stock *</label>
+                                            <input type="number" class="form-control" id="stock" name="stock" 
+                                                   min="0" value="{{ producto.stock if producto else '' }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="id_categoria" class="form-label">Categoría *</label>
+                                    <select class="form-select" id="id_categoria" name="id_categoria" required>
+                                        <option value="">Seleccionar categoría</option>
+                                        {% for categoria in categorias %}
+                                        <option value="{{ categoria.id_categoria }}" 
+                                                {% if producto and producto.id_categoria == categoria.id_categoria %}selected{% endif %}>
+                                            {{ categoria.nombre }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="imagen" class="form-label">Imagen del Producto</label>
+                                    <input type="file" class="form-control" id="imagen" name="imagen" 
+                                           accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.avif,.tiff,.tif,.ico" 
+                                           onchange="previewImage(this)">
+                                    <div class="form-text">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Formatos: JPG, PNG, GIF, WebP, AVIF, BMP, TIFF, ICO
+                                            <br>Tamaño máximo recomendado: 5MB
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <!-- Vista previa de imagen -->
+                                <div class="mb-3">
+                                    <div id="imagePreview" class="text-center">
+                                        {% if producto and producto.imagen_url %}
+                                        <img src="{{ producto.imagen_url }}" class="img-fluid rounded shadow" 
+                                             style="max-height: 200px;" id="previewImg">
+                                        {% else %}
+                                        <div class="border rounded p-4 bg-light" id="placeholderImg">
+                                            <i class="fas fa-image fa-3x text-muted mb-2"></i>
+                                            <p class="text-muted mb-0">Vista previa de imagen</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                {% if producto and producto.imagen_url %}
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="eliminar_imagen" name="eliminar_imagen">
+                                        <label class="form-check-label" for="eliminar_imagen">
+                                            <small class="text-danger">Eliminar imagen actual</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            <a href="{{ url_for('productos.admin_listar_productos') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Volver
+                            </a>
+                            <div>
+                                {% if producto %}
+                                <button type="button" class="btn btn-outline-danger me-2" 
+                                        onclick="confirmarEliminacion()">
+                                    <i class="fas fa-trash me-1"></i>Eliminar
+                                </button>
+                                {% endif %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Guardar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación de eliminación -->
+{% if producto %}
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar el producto <strong>"{{ producto.nombre }}"</strong>?</p>
+                <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{{ url_for('productos.admin_eliminar_producto', id=producto.id_producto) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // Validar formato de archivo
+        const allowedFormats = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'avif', 'tiff', 'tif', 'ico'];
+        const fileExtension = file.name.split('.').pop().toLowerCase();
+        
+        if (!allowedFormats.includes(fileExtension)) {
+            showImageError('❌ Formato no permitido', 
+                `El archivo "${file.name}" no es válido.<br>
+                <strong>Formatos permitidos:</strong> ${allowedFormats.join(', ').toUpperCase()}<br>
+                <strong>Su archivo es:</strong> ${fileExtension.toUpperCase()}`);
+            input.value = '';
+            return;
+        }
+        
+        // Validar tamaño de archivo (5MB máximo)
+        const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+        if (file.size > maxSize) {
+            const fileSizeMB = (file.size / 1024 / 1024).toFixed(2);
+            showImageError('📁 Archivo muy grande', 
+                `El archivo "${file.name}" es de ${fileSizeMB} MB.<br>
+                <strong>Tamaño máximo permitido:</strong> 5 MB<br>
+                Por favor, comprima la imagen o use un archivo más pequeño.`);
+            input.value = '';
+            return;
+        }
+        
+        // Validar que sea una imagen real
+        const img = new Image();
+        img.onload = function() {
+            // Es una imagen válida, mostrar preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('imagePreview');
+                const fileSizeKB = (file.size / 1024).toFixed(1);
+                preview.innerHTML = `
+                    <img src="${e.target.result}" class="img-fluid rounded shadow" 
+                         style="max-height: 200px;" id="previewImg">
+                    <div class="mt-2">
+                        <small class="text-success">
+                            <i class="fas fa-check-circle me-1"></i>
+                            ✅ Imagen válida (${fileSizeKB} KB - ${img.width}x${img.height}px)
+                        </small>
+                    </div>
+                `;
+                
+                // Limpiar cualquier mensaje de error previo
+                clearImageError();
+            };
+            reader.readAsDataURL(file);
+        };
+        
+        img.onerror = function() {
+            showImageError('🚫 Archivo no válido', 
+                `El archivo "${file.name}" no es una imagen válida o está corrupto.<br>
+                Verifique que el archivo no esté dañado y tenga una extensión correcta.`);
+            input.value = '';
+        };
+        
+        // Crear URL temporal para validar la imagen
+        const url = URL.createObjectURL(file);
+        img.src = url;
+    }
+}
+
+function showImageError(title, message) {
+    const preview = document.getElementById('imagePreview');
+    preview.innerHTML = `
+        <div class="border rounded p-4 bg-light border-danger">
+            <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
+            <h6 class="text-danger mb-2">${title}</h6>
+            <p class="text-muted mb-0 small">${message}</p>
+        </div>
+    `;
+    
+    // Mostrar notificación temporal
+    showToast('error', title, message.replace(/<br>/g, ' ').replace(/<[^>]*>/g, ''));
+}
+
+function clearImageError() {
+    // Función para limpiar mensajes de error previos
+}
+
+function showToast(type, title, message) {
+    // Crear toast dinámicamente
+    const toastId = 'toast-' + Date.now();
+    const toastContainer = getOrCreateToastContainer();
+    
+    const toastClass = type === 'error' ? 'text-bg-danger' : 'text-bg-success';
+    const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
+    
+    const toastHTML = `
+        <div id="${toastId}" class="toast ${toastClass}" role="alert" data-bs-delay="5000">
+            <div class="toast-header">
+                <i class="fas ${icon} me-2"></i>
+                <strong class="me-auto">${title}</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                ${message.substring(0, 150)}${message.length > 150 ? '...' : ''}
+            </div>
+        </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+    
+    // Limpiar el toast después de que se oculte
+    toastElement.addEventListener('hidden.bs.toast', function() {
+        toastElement.remove();
+    });
+}
+
+function getOrCreateToastContainer() {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '1200';
+        document.body.appendChild(container);
+    }
+    return container;
+}
+
+function confirmarEliminacion() {
+    const modal = new bootstrap.Modal(document.getElementById('modalEliminar'));
+    modal.show();
+}
+
+// Validación del formulario
+document.getElementById('productoForm').addEventListener('submit', function(e) {
+    const precio = parseFloat(document.getElementById('precio').value);
+    const stock = parseInt(document.getElementById('stock').value);
+    
+    if (precio <= 0) {
+        e.preventDefault();
+        alert('El precio debe ser mayor a 0');
+        return;
+    }
+    
+    if (stock < 0) {
+        e.preventDefault();
+        alert('El stock no puede ser negativo');
+        return;
+    }
+});
+</script>
+{% endblock %}

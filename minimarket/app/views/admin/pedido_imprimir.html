@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido #{{ pedido.id_pedido }} - MercaditoYa</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .info-section {
+            margin-bottom: 25px;
+        }
+        .info-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .info-row {
+            margin-bottom: 8px;
+        }
+        .label {
+            font-weight: bold;
+            display: inline-block;
+            width: 120px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .total-section {
+            margin-top: 20px;
+            border-top: 2px solid #333;
+            padding-top: 15px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .total-final {
+            font-weight: bold;
+            font-size: 18px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .estado-badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+        }
+        .estado-pendiente { background-color: #ffc107; color: #000; }
+        .estado-confirmado { background-color: #17a2b8; }
+        .estado-en_preparacion { background-color: #fd7e14; }
+        .estado-en_camino { background-color: #6610f2; }
+        .estado-entregado { background-color: #28a745; }
+        .estado-cancelado { background-color: #dc3545; }
+        
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Encabezado -->
+    <div class="header">
+        <div class="logo">MercaditoYa</div>
+        <div>Tu tienda de confianza para todas tus necesidades diarias</div>
+        <div style="margin-top: 10px; font-size: 14px;">
+            <strong>Comprobante de Pedido #{{ pedido.id_pedido }}</strong>
+        </div>
+    </div>
+
+    <!-- Información del pedido -->
+    <div class="info-section">
+        <div class="info-title">Información del Pedido</div>
+        <div class="info-row">
+            <span class="label">Fecha:</span>
+            {{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}
+        </div>
+        <div class="info-row">
+            <span class="label">Estado:</span>
+            <span class="estado-badge estado-{{ pedido.estado }}">
+                {{ pedido.estado.replace('_', ' ').title() }}
+            </span>
+        </div>
+        <div class="info-row">
+            <span class="label">Tipo:</span>
+            {% if pedido.es_delivery %}Delivery{% else %}Retiro en tienda{% endif %}
+        </div>
+    </div>
+
+    <!-- Información del cliente -->
+    <div class="info-section">
+        <div class="info-title">Información del Cliente</div>
+        <div class="info-row">
+            <span class="label">Nombre:</span>
+            {{ pedido.usuario.nombre_completo }}
+        </div>
+        <div class="info-row">
+            <span class="label">Email:</span>
+            {{ pedido.usuario.email }}
+        </div>
+        {% if pedido.usuario.telefono %}
+        <div class="info-row">
+            <span class="label">Teléfono:</span>
+            {{ pedido.usuario.telefono }}
+        </div>
+        {% endif %}
+        {% if pedido.es_delivery and pedido.usuario.direccion %}
+        <div class="info-row">
+            <span class="label">Dirección:</span>
+            {{ pedido.usuario.direccion }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Productos del pedido -->
+    <div class="info-section">
+        <div class="info-title">Productos del Pedido</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th class="text-right">Precio Unit.</th>
+                    <th class="text-right">Cantidad</th>
+                    <th class="text-right">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in pedido.detalles %}
+                <tr>
+                    <td>{{ detalle.producto.nombre }}</td>
+                    <td>{{ detalle.producto.categoria.nombre }}</td>
+                    <td class="text-right">S/. {{ "%.2f"|format(detalle.precio_unitario) }}</td>
+                    <td class="text-right">{{ detalle.cantidad }}</td>
+                    <td class="text-right">S/. {{ "%.2f"|format(detalle.subtotal()) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Resumen del pedido -->
+    <div class="total-section">
+        <div class="total-row total-final">
+            <span>TOTAL:</span>
+            <span>S/. {{ "%.2f"|format(pedido.total) }}</span>
+        </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; text-align: center; color: #666;">
+        <p>MercaditoYa - Tu tienda de confianza</p>
+        <p>Contacto: +1 234 567 8900 | info@mercaditoYa.com</p>
+        <p style="margin-top: 20px;">
+            Documento generado el {{ current_time.strftime('%d/%m/%Y %H:%M') if current_time else pedido.fecha.strftime('%d/%m/%Y %H:%M') }}
+        </p>
+    </div>
+
+    <!-- Botón para imprimir (no se mostrará al imprimir) -->
+    <div class="no-print" style="text-align: center; margin-top: 30px;">
+        <button onclick="window.print()" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            <i class="fas fa-print"></i> Imprimir
+        </button>
+        <button onclick="window.close()" style="padding: 10px 20px; background-color: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+            Cerrar
+        </button>
+    </div>
+
+    <script>
+        // Auto-abrir diálogo de impresión al cargar la página
+        window.addEventListener('load', function() {
+            // Pequeño delay para que la página termine de cargar
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

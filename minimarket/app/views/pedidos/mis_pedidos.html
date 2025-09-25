@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Pedidos - MercaditoYa{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-shopping-bag me-2"></i>Mis Pedidos
+        </h2>
+        <a href="{{ url_for('main.listar_productos') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Hacer Nuevo Pedido
+        </a>
+    </div>
+
+    {% if pedidos %}
+    <div class="row g-4">
+        {% for pedido in pedidos %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-0">
+                                Pedido #{{ pedido.id_pedido }}
+                                <span class="badge bg-{% if pedido.estado == 'entregado' %}success{% elif pedido.estado == 'cancelado' %}danger{% elif pedido.estado == 'pendiente' %}warning{% else %}info{% endif %} ms-2">
+                                    {{ pedido.estado.title() }}
+                                </span>
+                            </h5>
+                            <small class="text-muted">{{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}</small>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <h4 class="text-primary mb-0">S/. {{ "%.2f"|format(pedido.total) }}</h4>
+                            {% if pedido.es_delivery %}
+                            <small class="text-muted">
+                                <i class="fas fa-truck me-1"></i>Delivery
+                            </small>
+                            {% else %}
+                            <small class="text-muted">
+                                <i class="fas fa-store me-1"></i>Retiro en tienda
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6>Productos:</h6>
+                            <div class="row g-2">
+                                {% for detalle in pedido.detalles[:3] %}
+                                <div class="col-auto">
+                                    <span class="badge bg-light text-dark">
+                                        {{ detalle.cantidad }}x {{ detalle.producto.nombre }}
+                                    </span>
+                                </div>
+                                {% endfor %}
+                                {% if pedido.detalles|length > 3 %}
+                                <div class="col-auto">
+                                    <span class="badge bg-secondary">
+                                        +{{ pedido.detalles|length - 3 }} más
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            {% if pedido.es_delivery and pedido.usuario.direccion %}
+                            <div class="mt-2">
+                                <strong>Dirección de entrega:</strong>
+                                <p class="text-muted mb-0">{{ pedido.usuario.direccion }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('pedidos.detalle_pedido', id=pedido.id_pedido) }}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>Ver Detalle
+                                </a>
+                                
+                                {% if pedido.estado in ['pendiente', 'confirmado'] %}
+                                <a href="{{ url_for('pedidos.cancelar_pedido', id=pedido.id_pedido) }}" 
+                                   class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-times me-1"></i>Cancelar
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-shopping-bag fa-5x text-muted mb-4"></i>
+        <h3>No tienes pedidos aún</h3>
+        <p class="text-muted mb-4">¡Explora nuestros productos y haz tu primer pedido!</p>
+        <a href="{{ url_for('main.listar_productos') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-shopping-cart me-2"></i>Explorar Productos
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function cancelarPedido(pedidoId) {
+    if (confirm('¿Estás seguro de que quieres cancelar este pedido?')) {
+        // Opción 1: AJAX (más moderno)
+        fetch(`/pedidos/${pedidoId}/cancelar`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Pedido cancelado exitosamente');
+                location.reload(); // Recargar la página para mostrar el cambio
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Fallback: usar método de formulario tradicional
+            cancelarPedidoForm(pedidoId);
+        });
+    }
+}
+
+// Método de respaldo usando formulario tradicional
+function cancelarPedidoForm(pedidoId) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/pedidos/${pedidoId}/cancelar`;
+    
+    // Agregar token CSRF si está disponible
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    if (csrfToken) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken.getAttribute('content');
+        form.appendChild(csrfInput);
+    }
+    
+    // Enviar formulario
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}

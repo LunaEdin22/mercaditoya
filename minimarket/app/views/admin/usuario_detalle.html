@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Detalles del Usuario - MercaditoYa{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <!-- Encabezado -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-user me-2"></i>Detalles del Usuario
+                </h2>
+                <div>
+                    <a href="{{ url_for('usuarios.admin_editar_usuario', id=usuario.id_usuario) }}" 
+                       class="btn btn-primary me-2">
+                        <i class="fas fa-edit me-2"></i>Editar
+                    </a>
+                    <a href="{{ url_for('usuarios.admin_listar_usuarios') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver
+                    </a>
+                </div>
+            </div>
+
+            <!-- Información Personal -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-id-card me-2"></i>Información Personal
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nombre Completo:</label>
+                                <p class="form-control-plaintext">{{ usuario.nombre_completo }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Email:</label>
+                                <p class="form-control-plaintext">{{ usuario.email }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Teléfono:</label>
+                                <p class="form-control-plaintext">
+                                    {% if usuario.telefono %}
+                                    {{ usuario.telefono }}
+                                    {% else %}
+                                    <span class="text-muted">No registrado</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Rol:</label>
+                                <p class="form-control-plaintext">
+                                    {% set rol_class = 'danger' if usuario.rol.nombre == 'administrador' else 'success' if usuario.rol.nombre == 'repartidor' else 'primary' %}
+                                    <span class="badge bg-{{ rol_class }} fs-6">
+                                        {{ usuario.rol.nombre.title() }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Dirección:</label>
+                        <p class="form-control-plaintext">
+                            {% if usuario.direccion %}
+                            {{ usuario.direccion }}
+                            {% else %}
+                            <span class="text-muted">No registrada</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Actividad -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Información de Actividad
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Último Acceso:</label>
+                                <p class="form-control-plaintext">
+                                    {% if usuario.ultimo_acceso %}
+                                    {{ usuario.ultimo_acceso.strftime('%d/%m/%Y %H:%M') }}
+                                    {% else %}
+                                    <span class="text-muted">Nunca</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Estado:</label>
+                                <p class="form-control-plaintext">
+                                    <span class="badge bg-success">Activo</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if usuario.rol.nombre == 'cliente' %}
+            <!-- Estadísticas de Cliente -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shopping-cart me-2"></i>Estadísticas de Compras
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <h3 class="text-primary">{{ usuario.pedidos|length }}</h3>
+                                <p class="mb-0">Total de Pedidos</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <h3 class="text-success">
+                                    {% if usuario.pedidos|length > 0 %}
+                                    S/. {{ "%.2f"|format(usuario.pedidos|sum(attribute='total')) }}
+                                    {% else %}
+                                    S/. 0.00
+                                    {% endif %}
+                                </h3>
+                                <p class="mb-0">Total Gastado</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3">
+                                <h3 class="text-info">
+                                    {% if usuario.pedidos|length > 0 %}
+                                    S/. {{ "%.2f"|format((usuario.pedidos|sum(attribute='total')) / (usuario.pedidos|length)) }}
+                                    {% else %}
+                                    S/. 0.00
+                                    {% endif %}
+                                </h3>
+                                <p class="mb-0">Promedio por Pedido</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historial de Pedidos Recientes -->
+            {% if usuario.pedidos|length > 0 %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Últimos Pedidos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Pedido #</th>
+                                    <th>Fecha</th>
+                                    <th>Total</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pedido in usuario.pedidos|sort(attribute='fecha', reverse=true)|slice(5) %}
+                                <tr>
+                                    <td>#{{ pedido.id_pedido }}</td>
+                                    <td>{{ pedido.fecha.strftime('%d/%m/%Y') }}</td>
+                                    <td>S/. {{ "%.2f"|format(pedido.total) }}</td>
+                                    <td>
+                                        {% set estado_class = 'success' if pedido.estado == 'entregado' else 'warning' if pedido.estado == 'pendiente' else 'info' %}
+                                        <span class="badge bg-{{ estado_class }}">
+                                            {{ pedido.estado.title() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('pedidos.admin_ver_pedido', id=pedido.id_pedido) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if usuario.pedidos|length > 5 %}
+                    <div class="text-center mt-3">
+                        <small class="text-muted">Mostrando los últimos 5 pedidos de {{ usuario.pedidos|length }} total</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

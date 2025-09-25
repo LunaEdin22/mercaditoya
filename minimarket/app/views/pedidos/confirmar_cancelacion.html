@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Cancelar Pedido #{{ pedido.id_pedido }} - MercaditoYa{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white" style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirmar Cancelación
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>¿Estás seguro de que quieres cancelar este pedido?</strong>
+                        <br>Esta acción no se puede deshacer.
+                    </div>
+                    
+                    <!-- Información del pedido -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Pedido #{{ pedido.id_pedido }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Fecha:</strong> {{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
+                                    <p><strong>Estado:</strong> 
+                                        <span class="badge bg-{% if pedido.estado == 'pendiente' %}warning{% elif pedido.estado == 'confirmado' %}info{% else %}secondary{% endif %}">
+                                            {{ pedido.estado.title() }}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Total:</strong> S/. {{ "%.2f"|format(pedido.total) }}</p>
+                                    <p><strong>Tipo:</strong> 
+                                        {% if pedido.es_delivery %}
+                                            <i class="fas fa-truck me-1"></i>Delivery
+                                        {% else %}
+                                            <i class="fas fa-store me-1"></i>Retiro en tienda
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Productos del pedido -->
+                            <h6 class="mt-3">Productos:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Cantidad</th>
+                                            <th>Precio Unit.</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for detalle in pedido.detalles %}
+                                        <tr>
+                                            <td>{{ detalle.producto.nombre }}</td>
+                                            <td>{{ detalle.cantidad }}</td>
+                                            <td>S/. {{ "%.2f"|format(detalle.precio_unitario) }}</td>
+                                            <td>S/. {{ "%.2f"|format(detalle.subtotal()) }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Formulario de confirmación -->
+                    <form method="POST">
+                        {% if current_user.is_repartidor() %}
+                        <div class="mb-3">
+                            <label for="motivo" class="form-label">
+                                <strong>Motivo de cancelación (requerido):</strong>
+                            </label>
+                            <textarea name="motivo" id="motivo" class="form-control" rows="3" 
+                                      placeholder="Explica por qué necesitas cancelar este pedido..." required></textarea>
+                        </div>
+                        {% else %}
+                        <div class="mb-3">
+                            <label for="motivo" class="form-label">Motivo de cancelación (opcional):</label>
+                            <textarea name="motivo" id="motivo" class="form-control" rows="3" 
+                                      placeholder="Puedes explicar por qué cancelas este pedido..."></textarea>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('pedidos.mis_pedidos') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Volver
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times me-1"></i>Confirmar Cancelación
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

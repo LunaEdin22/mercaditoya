@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Carrito de Compras - MercaditoYa{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">
+        <i class="fas fa-shopping-cart me-2"></i>Carrito de Compras
+    </h2>
+
+    {% if productos_carrito %}
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    {% for item in productos_carrito %}
+                    <div class="row align-items-center border-bottom py-3">
+                        <div class="col-md-2">
+                            {% if item.producto.imagen_url %}
+                            <img src="{{ item.producto.imagen_url }}" class="img-fluid rounded" 
+                                 alt="{{ item.producto.nombre }}" style="height: 80px; object-fit: cover;">
+                            {% else %}
+                            <div class="d-flex align-items-center justify-content-center bg-light rounded" 
+                                 style="height: 80px;">
+                                <i class="fas fa-image text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <h6 class="mb-1">{{ item.producto.nombre }}</h6>
+                            <small class="text-muted">{{ item.producto.categoria.nombre }}</small>
+                            <br>
+                            <span class="text-primary fw-bold">S/. {{ "%.2f"|format(item.producto.precio) }}</span>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <form method="POST" action="{{ url_for('pedidos.actualizar_carrito') }}" class="d-inline">
+                                <input type="hidden" name="producto_id" value="{{ item.producto.id_producto }}">
+                                <div class="input-group input-group-sm">
+                                    <button type="button" class="btn btn-outline-secondary" 
+                                            onclick="updateQuantity('{{ item.producto.id_producto }}', '{{ item.cantidad - 1 }}')">-</button>
+                                    <input type="number" name="cantidad" value="{{ item.cantidad }}" 
+                                           min="0" max="{{ item.producto.stock }}" 
+                                           class="form-control text-center" 
+                                           onchange="updateQuantity('{{ item.producto.id_producto }}', this.value)">
+                                    <button type="button" class="btn btn-outline-secondary" 
+                                            onclick="updateQuantity('{{ item.producto.id_producto }}', '{{ item.cantidad + 1 }}')">+</button>
+                                </div>
+                            </form>
+                            <small class="text-muted">Stock: {{ item.producto.stock }}</small>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <div class="text-end">
+                                <div class="fw-bold">S/. {{ "%.2f"|format(item.subtotal) }}</div>
+                                <a href="{{ url_for('pedidos.eliminar_carrito', producto_id=item.producto.id_producto) }}" 
+                                   class="btn btn-sm btn-outline-danger mt-1" 
+                                   onclick="return confirm('¿Eliminar este producto del carrito?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Resumen del Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>S/. {{ "%.2f"|format(total) }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold fs-5">
+                        <span>Total:</span>
+                        <span class="text-primary">S/. {{ "%.2f"|format(total) }}</span>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('pedidos.checkout') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-credit-card me-2"></i>Proceder a pagar
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión para Comprar
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('main.listar_productos') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Seguir Comprando
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-shopping-cart fa-5x text-muted mb-4"></i>
+        <h3>Tu carrito está vacío</h3>
+        <p class="text-muted mb-4">Explora nuestros productos y agrega algunos al carrito</p>
+        <a href="{{ url_for('main.listar_productos') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-shopping-bag me-2"></i>Explorar Productos
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateQuantity(productoId, cantidad) {
+    // Convertir a números
+    cantidad = parseInt(cantidad);
+    if (cantidad < 0) return;
+    
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ url_for("pedidos.actualizar_carrito") }}';
+    
+    const inputProducto = document.createElement('input');
+    inputProducto.type = 'hidden';
+    inputProducto.name = 'producto_id';
+    inputProducto.value = productoId;
+    
+    const inputCantidad = document.createElement('input');
+    inputCantidad.type = 'hidden';
+    inputCantidad.name = 'cantidad';
+    inputCantidad.value = cantidad;
+    
+    form.appendChild(inputProducto);
+    form.appendChild(inputCantidad);
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}

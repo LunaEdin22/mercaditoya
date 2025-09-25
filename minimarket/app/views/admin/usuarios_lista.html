@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Usuarios - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-users me-2"></i>Gestión de Usuarios
+        </h2>
+        <a href="{{ url_for('usuarios.admin_nuevo_usuario') }}" class="btn btn-primary">
+            <i class="fas fa-user-plus me-1"></i>Nuevo Usuario
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Buscar usuario</label>
+                    <input type="text" class="form-control" name="q" 
+                           value="{{ busqueda or '' }}" placeholder="Nombre o email">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Rol</label>
+                    <select name="rol" class="form-select">
+                        <option value="">Todos los roles</option>
+                        {% for rol in roles %}
+                        <option value="{{ rol.id_rol }}" 
+                                {% if rol.id_rol == rol_seleccionado %}selected{% endif %}>
+                            {{ rol.nombre.title() }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de usuarios -->
+    {% if usuarios %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Teléfono</th>
+                            <th width="150">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-2">
+                                        {{ usuario.nombre_completo[0].upper() }}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ usuario.nombre_completo }}</h6>
+                                        <small class="text-muted">{{ usuario.email }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ usuario.email }}</td>
+                            <td>
+                                {% set rol_class = 'danger' if usuario.rol.nombre == 'administrador' else 'success' if usuario.rol.nombre == 'repartidor' else 'primary' %}
+                                <span class="badge bg-{{ rol_class }}">
+                                    {{ usuario.rol.nombre.title() }}
+                                </span>
+                            </td>
+                            <td>{{ usuario.telefono or '-' }}</td>
+                            <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('usuarios.admin_editar_usuario', id=usuario.id_usuario) }}" 
+                                        class="btn btn-outline-primary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-users fa-5x text-muted mb-3"></i>
+        <h4>No se encontraron usuarios</h4>
+        <p class="text-muted">Intenta ajustar los filtros o crear un nuevo usuario</p>
+        <a href="{{ url_for('usuarios.admin_nuevo_usuario') }}" class="btn btn-primary">
+            <i class="fas fa-user-plus me-1"></i>Crear Usuario
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+</style>
+{% endblock %}

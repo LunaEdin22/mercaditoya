@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar Sesión - MercaditoYa{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-5 col-md-7">
+            <div class="card shadow">
+                <div class="card-header text-white text-center" 
+                     style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);">
+                    <h3 class="mb-0">
+                        <i></i>Iniciar Sesión
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       required placeholder="tu@email.com">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Contraseña</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       required placeholder="Tu contraseña">
+                                <button type="button" class="btn btn-outline-secondary" onclick="togglePassword()">
+                                    <i class="fas fa-eye" id="password-toggle"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm" 
+                                    style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); border: none; color: white;">
+                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center bg-light">
+                    <p class="mb-0">
+                        ¿No tienes cuenta? 
+                        <a href="{{ url_for('auth.register') }}" class="text-primary text-decoration-none">
+                            <strong>Regístrate aquí</strong>
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword() {
+    const passwordField = document.getElementById('password');
+    const toggleIcon = document.getElementById('password-toggle');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordField.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Productos - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-box me-2"></i>Gestión de Productos
+        </h2>
+        <a href="{{ url_for('productos.admin_nuevo_producto') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Nuevo Producto
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Buscar producto</label>
+                    <input type="text" class="form-control" name="q" 
+                           value="{{ busqueda or '' }}" placeholder="Nombre del producto">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Categoría</label>
+                    <select name="categoria" class="form-select">
+                        <option value="">Todas las categorías</option>
+                        {% for categoria in categorias %}
+                        <option value="{{ categoria.id_categoria }}" 
+                                {% if categoria.id_categoria == categoria_seleccionada %}selected{% endif %}>
+                            {{ categoria.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Stock</label>
+                    <select name="stock" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="disponible">Con Stock</option>
+                        <option value="sin_stock">Sin Stock</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de productos -->
+    {% if productos %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th width="80">Imagen</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th width="150">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for producto in productos %}
+                        <tr>
+                            <td>
+                                {% if producto.imagen_url %}
+                                <img src="{{ producto.imagen_url }}" class="rounded" 
+                                     style="width: 50px; height: 50px; object-fit: cover;">
+                                {% else %}
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                     style="width: 50px; height: 50px;">
+                                    <i class="fas fa-image text-muted"></i>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>
+                                    <h6 class="mb-0">{{ producto.nombre }}</h6>
+                                </div>
+                            </td>
+                            <td>{{ producto.categoria.nombre }}</td>
+                            <td>S/. {{ "%.2f"|format(producto.precio) }}</td>
+                            <td>
+                                {% if producto.stock > 10 %}
+                                <span class="badge bg-success">{{ producto.stock }}</span>
+                                {% elif producto.stock > 0 %}
+                                <span class="badge bg-warning">{{ producto.stock }}</span>
+                                {% else %}
+                                <span class="badge bg-danger">Sin stock</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('productos.admin_editar_producto', id=producto.id_producto) }}" 
+                                       class="btn btn-outline-primary" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{{ url_for('main.detalle_producto', id=producto.id_producto) }}" 
+                                       class="btn btn-outline-info" title="Ver" target="_blank">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('productos.admin_eliminar_producto', id=producto.id_producto) }}" 
+                                          class="d-inline" onsubmit="return confirm('¿Eliminar este producto?')">
+                                        <button type="submit" class="btn btn-outline-danger" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-box-open fa-5x text-muted mb-3"></i>
+        <h4>No se encontraron productos</h4>
+        <p class="text-muted">Intenta ajustar los filtros o crear un nuevo producto</p>
+        <a href="{{ url_for('productos.admin_nuevo_producto') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Crear Producto
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

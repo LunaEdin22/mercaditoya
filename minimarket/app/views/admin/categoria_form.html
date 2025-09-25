@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if categoria else 'Nueva' }} Categoría - MercaditoYa{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-tag me-2"></i>
+                        {{ 'Editar Categoría' if categoria else 'Nueva Categoría' }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="categoriaForm">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre de la Categoría *</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" 
+                                   value="{{ categoria.nombre if categoria else '' }}" 
+                                   required placeholder="Ej: Bebidas, Snacks, Lácteos">
+                            <div class="form-text">El nombre debe ser único y descriptivo</div>
+                        </div>
+
+                        {% if categoria %}
+                        <!-- Información adicional para edición -->
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Información de la Categoría</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>ID:</strong> {{ categoria.id_categoria }}</p>
+                                        <p class="mb-0"><strong>Productos:</strong> {{ categoria.productos|length }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Estado:</strong> 
+                                            <span class="badge bg-success">Activa</span>
+                                        </p>
+                                        <p class="mb-0"><strong>Creada:</strong> 
+                                            {% if categoria.productos|length > 0 %}
+                                            {{ categoria.productos[0].fecha_creacion.strftime('%d/%m/%Y') if categoria.productos[0].fecha_creacion else 'N/A' }}
+                                            {% else %}
+                                            N/A
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if categoria.productos|length > 0 %}
+                        <!-- Lista de productos en esta categoría -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0">Productos en esta Categoría ({{ categoria.productos|length }})</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Producto</th>
+                                                <th>Precio</th>
+                                                <th>Stock</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for producto in categoria.productos[:5] %}
+                                            <tr>
+                                                <td>{{ producto.nombre }}</td>
+                                                <td>S/. {{ "%.2f"|format(producto.precio) }}</td>
+                                                <td>{{ producto.stock }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% if categoria.productos|length > 5 %}
+                                <small class="text-muted">Mostrando 5 de {{ categoria.productos|length }} productos</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('productos.admin_listar_categorias') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver
+                            </a>
+                            <div>
+                                {% if categoria and categoria.productos|length == 0 %}
+                                <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <i class="fas fa-trash me-2"></i>Eliminar
+                                </button>
+                                {% endif %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>
+                                    {{ 'Actualizar' if categoria else 'Crear' }} Categoría
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Ayuda y recomendaciones -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Consejos para Categorías
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li><strong>Nombres claros:</strong> Usa nombres descriptivos y fáciles de entender</li>
+                        <li><strong>Organización:</strong> Agrupa productos similares para facilitar la navegación</li>
+                        <li><strong>Consistencia:</strong> Mantén un criterio uniforme en la nomenclatura</li>
+                        <li><strong>Ejemplos:</strong> Bebidas, Snacks, Lácteos, Frutas y Verduras, Productos de Limpieza</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+{% if categoria and categoria.productos|length == 0 %}
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar la categoría <strong>"{{ categoria.nombre }}"</strong>?</p>
+                <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="alert('Función de eliminar no implementada aún')">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('categoriaForm').addEventListener('submit', function(e) {
+    const nombre = document.getElementById('nombre').value.trim();
+    
+    // Validar que el nombre no esté vacío
+    if (!nombre) {
+        e.preventDefault();
+        alert('El nombre de la categoría es obligatorio');
+        return false;
+    }
+    
+    // Validar longitud mínima
+    if (nombre.length < 2) {
+        e.preventDefault();
+        alert('El nombre debe tener al menos 2 caracteres');
+        return false;
+    }
+    
+    // Validar longitud máxima
+    if (nombre.length > 100) {
+        e.preventDefault();
+        alert('El nombre no puede tener más de 100 caracteres');
+        return false;
+    }
+    
+    // Validar caracteres especiales básicos
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-&]+$/.test(nombre)) {
+        e.preventDefault();
+        alert('El nombre solo puede contener letras, números, espacios, guiones y el símbolo &');
+        return false;
+    }
+});
+
+// Capitalizar primera letra automáticamente
+document.getElementById('nombre').addEventListener('blur', function() {
+    let valor = this.value.trim();
+    if (valor) {
+        // Capitalizar primera letra de cada palabra
+        valor = valor.replace(/\b\w/g, l => l.toUpperCase());
+        this.value = valor;
+    }
+});
+
+// Limpiar espacios múltiples mientras se escribe
+document.getElementById('nombre').addEventListener('input', function() {
+    this.value = this.value.replace(/\s+/g, ' ');
+});
+</script>
+{% endblock %}
