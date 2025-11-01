@@ -103,3 +103,76 @@ INSERT INTO productos (nombre, precio, stock, imagen_url, id_categoria) VALUES
 ('Pan Marraqueta (unidad)', 0.20, 200, 'https://i.ibb.co/tPPLY8vL/91dc6774210f.png', 6),
 ('Croissant', 0.80, 40, 'https://i.ibb.co/cS81vYDp/8f516b5bb18b.png', 6);
 
+-- Procedimientos Almacenados
+
+CREATE OR ALTER PROCEDURE sp_autenticar
+    @email VARCHAR(150)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        u.id_usuario,
+        u.nombre_completo,
+        u.email,
+        u.contrasena,  
+        u.telefono,
+        u.direccion,
+        u.id_rol,
+        r.nombre AS nombre_rol
+    FROM usuarios u
+    INNER JOIN roles r ON u.id_rol = r.id_rol
+    WHERE u.email = @email;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE sp_actualizar_estado_pedido
+    @id_pedido INT,
+    @nuevo_estado VARCHAR(50),
+    @repartidor_id INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    UPDATE pedidos
+    SET estado = @nuevo_estado,
+        repartidor_id = @repartidor_id
+    WHERE id_pedido = @id_pedido;
+    
+    SELECT @@ROWCOUNT AS filas_actualizadas;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE sp_obtener_producto_validar
+    @id_producto INT,
+    @cantidad_solicitada INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DECLARE @stock_actual INT;
+    DECLARE @existe BIT = 0;
+    DECLARE @stock_suficiente BIT = 0;
+    
+    SELECT 
+        @stock_actual = stock
+    FROM productos
+    WHERE id_producto = @id_producto;
+    
+    IF @stock_actual IS NOT NULL
+        SET @existe = 1;
+    
+    IF @stock_actual >= @cantidad_solicitada
+        SET @stock_suficiente = 1;
+    
+    SELECT 
+        id_producto,
+        nombre,
+        precio,
+        stock,
+        @existe AS existe,
+        @stock_suficiente AS stock_suficiente
+    FROM productos
+    WHERE id_producto = @id_producto;
+END;
+GO
