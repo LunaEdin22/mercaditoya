@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from app.models import Pedido, PedidoDetalle, Producto, Usuario, Rol, db
 from datetime import datetime, timedelta
+from sqlalchemy import text
+
 
 pedidos_bp = Blueprint('pedidos', __name__)
 
@@ -29,46 +31,57 @@ def ver_carrito():
 
 @pedidos_bp.route('/agregar_carrito', methods=['POST'])
 def agregar_carrito():
-    """Agrega un producto al carrito"""
+    """Valida stock usando SP simplificado"""
     producto_id = request.form.get('producto_id')
     cantidad = int(request.form.get('cantidad', 1))
     
     if not producto_id:
         return jsonify({'success': False, 'message': 'Producto no válido'})
     
-    producto = Producto.query.get(int(producto_id))
-    if not producto:
-        return jsonify({'success': False, 'message': 'Producto no encontrado'})
-    
-    if cantidad > producto.stock:
-        return jsonify({'success': False, 'message': 'Stock insuficiente'})
-    
-    # Inicializar carrito si no existe
-    if 'carrito' not in session:
-        session['carrito'] = {}
-    
-    carrito = session['carrito']
-    
-    # Agregar o actualizar cantidad
-    if producto_id in carrito:
-        nueva_cantidad = carrito[producto_id] + cantidad
-        if nueva_cantidad > producto.stock:
-            return jsonify({'success': False, 'message': 'Stock insuficiente'})
-        carrito[producto_id] = nueva_cantidad
-    else:
-        carrito[producto_id] = cantidad
-    
-    session['carrito'] = carrito
-    session.modified = True
-    
-    # Calcular total de items en carrito
-    total_items = sum(carrito.values())
-    
-    return jsonify({
-        'success': True, 
-        'message': 'Producto agregado al carrito',
-        'total_items': total_items
-    })
+    try:
+        connection = db.engine.raw_connection()
+        cursor = connection.cursor()
+        
+        cursor.execute("""
+            EXEC sp_obtener_producto_validar 
+                @id_producto = ?,
+                @cantidad_solicitada = ?
+        """, (producto_id, cantidad))
+        
+        result = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        
+        if not result:
+            return jsonify({'success': False, 'message': 'Producto no encontrado'})
+        
+        # Desempacar resultado
+        id_prod, nombre, precio, stock, existe, stock_suficiente = result
+        
+        if not existe:
+            return jsonify({'success': False, 'message': 'Producto no encontrado'})
+        
+        if not stock_suficiente:
+            return jsonify({'success': False, 'message': 'Stock con sp insuficiente'})
+        
+        # Agregar al carrito
+        if 'carrito' not in session:
+            session['carrito'] = {}
+        
+        carrito = session['carrito']
+        carrito[str(producto_id)] = carrito.get(str(producto_id), 0) + cantidad
+        session['carrito'] = carrito
+        session.modified = True
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Producto "{nombre}" con sp agregado al carrito',
+            'total_items': sum(carrito.values())
+        })
+        
+    except Exception as e:
+        print(f"Error detallado: {e}")
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'})
 
 @pedidos_bp.route('/actualizar_carrito', methods=['POST'])
 def actualizar_carrito():
@@ -364,56 +377,43 @@ def admin_imprimir_pedido(id):
 @pedidos_bp.route('/admin/pedido/<int:id>/estado', methods=['POST'])
 @login_required
 def admin_cambiar_estado(id):
-    """Cambia el estado de un pedido y asigna repartidor"""
+    """Cambia estado usando SP"""
     if not current_user.is_admin():
-        flash('No tienes permisos para realizar esta acción', 'error')
+        flash('No tienes permisos', 'error')
         return redirect(url_for('main.index'))
     
-    pedido = Pedido.query.get_or_404(id)
     nuevo_estado = request.form.get('estado')
-    repartidor_id = request.form.get('repartidor_id')
+    repartidor_id = request.form.get('repartidor_id') or None
     
     estados_validos = ['pendiente', 'confirmado', 'en_preparacion', 'en_camino', 'entregado', 'cancelado']
     
-    if nuevo_estado in estados_validos:
-        pedido.estado = nuevo_estado
-        
-        # Asignar repartidor si se proporciona
-        if repartidor_id and repartidor_id != '':
-            pedido.repartidor_id = int(repartidor_id)
-        elif repartidor_id == '':
-            pedido.repartidor_id = None
-        
-        try:
-            db.session.commit()
-            
-            # Mensaje personalizado según el estado
-            if nuevo_estado == 'confirmado':
-                flash(f'Pedido #{pedido.id_pedido} confirmado exitosamente', 'success')
-            elif nuevo_estado == 'en_preparacion':
-                flash(f'Pedido #{pedido.id_pedido} está siendo preparado', 'info')
-            elif nuevo_estado == 'en_camino':
-                if pedido.repartidor:
-                    flash(f'Pedido #{pedido.id_pedido} en camino - Repartidor: {pedido.repartidor.nombre_completo}', 'info')
-                else:
-                    flash(f'Pedido #{pedido.id_pedido} en camino', 'info')
-            elif nuevo_estado == 'entregado':
-                if pedido.repartidor:
-                    flash(f'Pedido #{pedido.id_pedido} entregado por {pedido.repartidor.nombre_completo}', 'success')
-                else:
-                    flash(f'Pedido #{pedido.id_pedido} marcado como entregado', 'success')
-            elif nuevo_estado == 'cancelado':
-                flash(f'Pedido #{pedido.id_pedido} cancelado', 'warning')
-            else:
-                flash('Estado del pedido actualizado', 'success')
-                
-        except Exception as e:
-            db.session.rollback()
-            flash('Error al actualizar el estado', 'error')
-    else:
+    if nuevo_estado not in estados_validos:
         flash('Estado no válido', 'error')
+        return redirect(url_for('pedidos.admin_listar_pedidos'))
+    
+    try:
+        query = text("""
+            EXEC sp_actualizar_estado_pedido 
+                @id_pedido = :id_pedido,
+                @nuevo_estado = :estado,
+                @repartidor_id = :repartidor_id
+        """)
+        
+        db.session.execute(query, {
+            'id_pedido': id,
+            'estado': nuevo_estado,
+            'repartidor_id': repartidor_id
+        })
+        db.session.commit()
+        
+        flash(f'Pedido #{id} actualizado con sp a {nuevo_estado}', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {str(e)}', 'error')
     
     return redirect(url_for('pedidos.admin_listar_pedidos'))
+
 
 @pedidos_bp.route('/repartidor/pedidos/<int:id>/entregar', methods=['POST'])
 @login_required
