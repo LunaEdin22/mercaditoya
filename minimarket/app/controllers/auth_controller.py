@@ -1,12 +1,13 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import Usuario, Rol, db
+from sqlalchemy import text
 
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """Maneja el login de usuarios"""
+    """Login híbrido: SP para búsqueda + Python para verificación de hash"""
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     
@@ -18,22 +19,33 @@ def login():
             flash('Por favor complete todos los campos', 'error')
             return render_template('auth/login.html')
         
-        usuario = Usuario.query.filter_by(email=email).first()
-        
-        if usuario and usuario.check_password(password):
-            login_user(usuario, remember=True)
-            flash(f'¡Bienvenido {usuario.nombre_completo}!', 'success')
+        try:
+            # Llamar al procedimiento almacenado sp_autenticar
+            query = text("EXEC sp_autenticar :email")
+            result = db.session.execute(query, {'email': email}).fetchone()
             
-            # Redirigir según el rol
-            next_page = request.args.get('next')
-            if next_page:
-                return redirect(next_page)
-            elif usuario.is_admin():
-                return redirect(url_for('productos.admin_dashboard'))
-            else:
-                return redirect(url_for('main.index'))
-        else:
-            flash('Email o contraseña incorrectos', 'error')
+            if result:
+                usuario = Usuario.query.get(result.id_usuario)
+                
+                # Verificar la contraseña usando el método del modelo
+                if usuario and usuario.check_password(password):
+                    login_user(usuario, remember=True)
+                    flash(f'¡Bienvenido {usuario.nombre_completo}!, mediante sp', 'success')
+                    
+                    # Redirigir según el rol
+                    next_page = request.args.get('next')
+                    if next_page:
+                        return redirect(next_page)
+                    elif result.nombre_rol == 'admin':  # Usar dato del SP
+                        return redirect(url_for('productos.admin_dashboard'))
+                    else:
+                        return redirect(url_for('main.index'))
+            
+            flash('Email o contraseña incorrectos usando sp_autenticar', 'error')
+            
+        except Exception as e:
+            flash(f'Error en la autenticación: {str(e)}', 'error')
+            print(f"Error detallado: {e}")  # Para debugging
     
     return render_template('auth/login.html')
 
